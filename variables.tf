@@ -34,15 +34,15 @@ variable "landingzones" {
 variable "teams" {
   description = "List of teams to create with their access group configurations"
   type = list(object({
-    name = string
-    description = string
+    name            = string
+    description     = string
     email_addresses = optional(list(string), [])
     email_domains   = optional(list(string), [])
     github_identities = optional(list(object({
       name                 = string
       identity_provider_id = string
     })), [])
-    environments = optional(list(string), ["development"])
+    environments    = optional(list(string), ["development"])
     allowed_domains = optional(list(string), [])
   }))
   default = []

@@ -1,37 +1,5 @@
 locals {
   cloudflare_account_id = var.cloudflare_account_id
-  domain_name           = var.domain_name
-
-  # CIDR network splitting
-  cidr_base        = local.private_network_cidr
-  development_cidr = cidrsubnet(local.cidr_base, 2, 0) # First /22 subnet
-  staging_cidr     = cidrsubnet(local.cidr_base, 2, 1) # Second /22 subnet
-  production_cidr  = cidrsubnet(local.cidr_base, 2, 2) # Third /22 subnet
-  reserved_cidr    = cidrsubnet(local.cidr_base, 2, 3) # Fourth /22 subnet
-
-  # Network environment information
-  network_environments = {
-    development = {
-      name        = "Development"
-      cidr        = local.development_cidr
-      description = "Development environment network"
-    }
-    staging = {
-      name        = "Staging"
-      cidr        = local.staging_cidr
-      description = "Staging environment network"
-    }
-    production = {
-      name        = "Production"
-      cidr        = local.production_cidr
-      description = "Production environment network"
-    }
-    reserved = {
-      name        = "Reserved"
-      cidr        = local.reserved_cidr
-      description = "Reserved for future use"
-    }
-  }
 
   # Transform email addresses to objects with 'email' key for each team
   team_email_objects = {
@@ -40,12 +8,12 @@ locals {
     ]
   }
 
-  # Determine which networks each team should have access to based on their network_access setting
+  # Determine which networks each team should have access to based on their environments setting
   team_network_access = {
     for team in var.teams : team.name => {
       networks = [
-        for env_name, env in local.network_environments : env.cidr
-        if contains(split(" ", lower(team.network_access)), lower(env_name))
+        for lz in var.landingzones : local.private_network_cidr
+        if contains(coalesce(team.environments, ["development"]), lz.environment)
       ]
     }
   }
@@ -59,18 +27,55 @@ resource "random_string" "suffix" {
 }
 
 #------------------------------------------------------
+# Virtual Networks and Tunnels
+#------------------------------------------------------
+
+# Create virtual networks for each landing zone
+resource "cloudflare_zero_trust_tunnel_cloudflared_virtual_network" "landing_zones" {
+  for_each = { for lz in var.landingzones : lz.domain_name => lz }
+  
+  account_id = local.cloudflare_account_id
+  name       = "${each.value.environment}-network"
+  comment    = "Virtual network for ${each.value.environment} environment"
+}
+
+# Create cloudflared tunnels for each landing zone
+resource "cloudflare_zero_trust_tunnel_cloudflared" "landing_zones" {
+  for_each = { for lz in var.landingzones : lz.domain_name => lz }
+  
+  account_id = local.cloudflare_account_id
+  name       = "${each.value.environment}-tunnel"
+  tunnel_secret     = random_string.tunnel_secrets[each.key].result
+}
+
+# Generate random secrets for each tunnel
+resource "random_string" "tunnel_secrets" {
+  for_each = { for lz in var.landingzones : lz.domain_name => lz }
+  length  = 32
+  special = false
+}
+
+# Create tunnel routes for each landing zone
+resource "cloudflare_zero_trust_tunnel_cloudflared_route" "landing_zones" {
+  for_each = { for lz in var.landingzones : lz.domain_name => lz }
+  
+  account_id = local.cloudflare_account_id
+  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.landing_zones[each.key].id
+  network    = local.private_network_cidr
+  virtual_network_id = cloudflare_zero_trust_tunnel_cloudflared_virtual_network.landing_zones[each.key].id
+}
+
+#------------------------------------------------------
 # Zero Trust Team Groups (User Categorization)
 #------------------------------------------------------
 
 # Create different user groups for access control
 resource "cloudflare_zero_trust_access_group" "teams" {
-  for_each  = { for team in var.teams : team.name => team }
+  for_each   = { for team in var.teams : team.name => team }
   account_id = local.cloudflare_account_id
   name       = "${title(each.value.name)} Team - ${random_string.suffix.result}"
 
-  include {
-    email = local.team_email_objects[each.key]
-  }
+  include = local.team_email_objects[each.key]
 }
 
 #------------------------------------------------------
@@ -78,9 +83,9 @@ resource "cloudflare_zero_trust_access_group" "teams" {
 #------------------------------------------------------
 
 resource "cloudflare_zero_trust_device_custom_profile" "teams" {
-  for_each  = { for team in var.teams : team.name => team }
-  account_id = local.cloudflare_account_id
-  name       = "${title(each.value.name)} WARP Profile - ${random_string.suffix.result}"
+  for_each    = { for team in var.teams : team.name => team }
+  account_id  = local.cloudflare_account_id
+  name        = "${title(each.value.name)} WARP Profile - ${random_string.suffix.result}"
   description = each.value.description
   precedence  = 100 + index(var.teams, each.value)
 
@@ -96,7 +101,7 @@ resource "cloudflare_zero_trust_device_custom_profile" "teams" {
   allow_mode_switch = false # Don't allow switching between modes
   auto_connect      = 300   # 5 minutes
 
-  # Include networks based on team's network_access setting
+  # Include networks based on team's environments setting
   include = [
     for network in local.team_network_access[each.key].networks : {
       address     = network
@@ -107,9 +112,9 @@ resource "cloudflare_zero_trust_device_custom_profile" "teams" {
 
 # Gateway policies to implement access controls
 resource "cloudflare_zero_trust_gateway_policy" "teams" {
-  for_each  = { for team in var.teams : team.name => team }
-  account_id = local.cloudflare_account_id
-  name       = "${title(each.value.name)} Access Policy - ${random_string.suffix.result}"
+  for_each    = { for team in var.teams : team.name => team }
+  account_id  = local.cloudflare_account_id
+  name        = "${title(each.value.name)} Access Policy - ${random_string.suffix.result}"
   description = each.value.description
   precedence  = 100 + index(var.teams, each.value)
   action      = "allow"

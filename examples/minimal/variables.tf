@@ -12,6 +12,7 @@ variable "cloudflare_account_id" {
 variable "cloudflare_zone_id" {
   description = "Cloudflare zone ID where Zero Trust resources will be deployed"
   type        = string
+  default     = ""
 }
 
 variable "landingzones" {
@@ -20,18 +21,39 @@ variable "landingzones" {
     domain_name = string
     environment = string
   }))
+  default = []
+}
+
+variable "teams" {
+  description = "List of teams to create with their access group configurations"
+  type = list(object({
+    name            = string
+    description     = string
+    email_addresses = list(string)
+    environments    = list(string)
+    allowed_domains = list(string)
+  }))
   default = [
     {
-      domain_name = "dev.example.com"
-      environment = "development"
+      name            = "engineering"
+      description     = "Engineering team"
+      email_addresses = ["engineering@example.com"]
+      environments    = ["development", "staging"]
+      allowed_domains = ["example.com", "staging.example.com"]
     },
     {
-      domain_name = "staging.example.com"
-      environment = "staging"
+      name            = "devops"
+      description     = "DevOps team"
+      email_addresses = ["devops@example.com"]
+      environments    = ["development", "staging", "production"]
+      allowed_domains = ["example.com", "staging.example.com", "prod.example.com"]
     },
     {
-      domain_name = "prod.example.com"
-      environment = "production"
+      name            = "security"
+      description     = "Security team"
+      email_addresses = ["security@example.com"]
+      environments    = ["development", "staging", "production"]
+      allowed_domains = ["example.com", "staging.example.com", "prod.example.com"]
     }
   ]
 } 

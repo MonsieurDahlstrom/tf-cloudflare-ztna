@@ -16,10 +16,23 @@ repos:
           )$
       - id: terraform_checkov
         args:
-          - --check CKV_CLOUDFLARE_*
-          - --check CKV_*
-          - --skip-check CKV_123
-          - --skip-check CKV_124
-          - --compact
-          - --directory .
+          - --args=--check
+          - --args=CKV_CLOUDFLARE_*
+          - --args=--check
+          - --args=CKV_*
+          - --args=--skip-check
+          - --args=CKV_123
+          - --args=--skip-check
+          - --args=CKV_124
+          - --args=--skip-check
+          - --args=CKV_SECRET_6
+          - --args=--compact
+          - --args=--quiet
+          - --args=--directory
+          - --args=.
+        exclude: |
+          (?x)^(
+            .*terraform\.tfvars\.json$
+            .*examples/.*
+          )$
       

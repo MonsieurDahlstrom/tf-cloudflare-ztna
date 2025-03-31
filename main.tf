@@ -40,6 +40,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_virtual_network" "landing_zon
   account_id = local.cloudflare_account_id
   name       = "${each.value.environment}-network${local.name_suffix}"
   comment    = "Virtual network for ${each.value.environment} environment"
+  is_default = false
 }
 
 # Create cloudflared tunnels for each landing zone

@@ -67,8 +67,8 @@ module "cloudflare_ztna" {
   cloudflare_account_id = var.cloudflare_account_id
   domain_name = "yourdomain.com"
   
-  # Configure private network CIDR (optional, defaults to "10.100.0.0/20")
-  private_network_cidr = "10.100.0.0/20"
+  # Configure private network CIDR (must be a /22 CIDR in a private range)
+  private_network_cidr = "10.100.0.0/22"  # Default value
   
   # Configure landing zones
   landing_zones = {
@@ -111,8 +111,8 @@ module "cloudflare_ztna" {
   cloudflare_account_id = var.cloudflare_account_id
   domain_name = "yourdomain.com"
   
-  # Configure private network CIDR (optional, defaults to "10.100.0.0/20")
-  private_network_cidr = "172.16.0.0/20"  # Custom CIDR for this deployment
+  # Configure private network CIDR (must be a /22 CIDR in a private range)
+  private_network_cidr = "172.16.0.0/22"  # Custom CIDR in private range
   
   # Configure landing zones
   landing_zones = {

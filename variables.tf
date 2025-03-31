@@ -22,9 +22,28 @@ variable "cloudflare_zone_id" {
 }
 
 variable "private_network_cidr" {
-  description = "The CIDR block to use for private networks"
+  description = "The CIDR block to use for private networks. Must be a /22 CIDR in a private range (10.0.0.0/8, 172.16.0.0/12, or 192.168.0.0/16)"
   type        = string
-  default     = "10.100.0.0/20"
+  default     = "10.0.0.0/22"
+
+  validation {
+    condition = (
+      # Must be a /22 CIDR
+      split("/", var.private_network_cidr)[1] == "22" &&
+      # Must be in one of the private ranges
+      (
+        can(regex("^10\\.", var.private_network_cidr)) ||
+        can(regex("^172\\.(1[6-9]|2[0-9]|3[0-1])\\.", var.private_network_cidr)) ||
+        can(regex("^192\\.168\\.", var.private_network_cidr))
+      ) &&
+      # Must be a valid IP address (each octet 0-255)
+      alltrue([
+        for octet in split(".", split("/", var.private_network_cidr)[0]) :
+        tonumber(octet) >= 0 && tonumber(octet) <= 255
+      ])
+    )
+    error_message = "The private_network_cidr must be a /22 CIDR in a private range (10.0.0.0/8, 172.16.0.0/12, or 192.168.0.0/16) with valid IP octets (0-255)"
+  }
 }
 
 variable "landingzones" {

@@ -1,0 +1,60 @@
+name: Integration Tests
+
+on:
+  workflow_call:
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+      CLOUDFLARE_ZONE_ID:
+        required: true
+
+jobs:
+  test-ubuntu:
+    name: Integration Tests (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      TF_IN_AUTOMATION: true
+      TF_INPUT: false
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: 1.6.6
+          terraform_wrapper: false
+          
+      - name: Cache Terraform dependencies
+        uses: actions/cache@v4.2.2
+        with:
+          path: |
+            ~/.terraform.d/plugin-cache
+            .terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+            
+      - name: Generate Cloudflare credentials file
+        run: |
+          cat > .auto.tfvars.json << EOF
+          {
+            "cloudflare_api_token": "${{ secrets.CLOUDFLARE_API_TOKEN }}",
+            "cloudflare_account_id": "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}",
+            "cloudflare_zone_id": "${{ secrets.CLOUDFLARE_ZONE_ID }}"
+          }
+          EOF
+          
+      - name: Run Terraform tests
+        run: |
+          terraform init
+          terraform test
+        env:
+          TF_VAR_environment: ${{ github.event_name == 'pull_request' && 'pr-' || '' }}${{ github.base_ref }}

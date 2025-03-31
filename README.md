@@ -23,40 +23,37 @@ The module is organized into several key components:
 - **Variable-driven group membership** for easy configuration
 - **Fully optional teams** that are only created when configured
 
-### 2. Network Segmentation with CIDR Blocks
+### 2. Network Segmentation with Virtual Networks
 
-- Takes a /20 private network CIDR and splits it into four /22 subnets:
-  - **Development Environment**: First /22 subnet
-  - **Staging Environment**: Second /22 subnet
-  - **Production Environment**: Third /22 subnet
-  - **Reserved**: Fourth /22 subnet (for administrative/security purposes)
-- Provides clear network boundaries between environments
-- Allows for targeted access controls based on environment
+- Creates four separate virtual networks, each with the same IP range:
+  - **Development Environment**: Dedicated virtual network for development workloads
+  - **Staging Environment**: Dedicated virtual network for staging workloads
+  - **Production Environment**: Dedicated virtual network for production workloads
+  - **Reserved**: Dedicated virtual network for administrative/security purposes
+- Each virtual network has its own network security and access controls
+- Teams have varying levels of access to different virtual networks based on their roles
+- Provides complete network isolation between environments
+- Enables granular access control through WARP profiles
 
-### 3. Team-Specific WARP Profiles with Environment Access
+### 3. Team-Specific WARP Profiles
 
-- **Engineering WARP Profile**:
-  - Restricted split tunneling that only routes specific engineering resources through WARP
-  - Access limited to development environment network only
-  - Device posture checks for security validation
-  
-- **DevOps WARP Profile**:
-  - Broader split tunneling configuration
-  - Access to all environment networks (development, staging, production)
-  - Routes all company domains through WARP
-  
-- **Security WARP Profile**:
-  - Full tunneling with most traffic through WARP
-  - Explicit access to reserved network
-  - Enhanced security controls
-  - Only common public services excluded from WARP
+- **Flexible Team Configuration**:
+  - Define teams through a variable-driven approach
+  - Support for multiple identity types (email domains, email addresses)
+  - Optional team creation based on configuration
+  - Each team can have its own WARP profile settings
 
-### 4. Unique Resource Naming with Random Suffix
+- **WARP Profile Customization**:
+  - Configurable split tunneling rules per team
+  - Customizable network access controls
+  - Adjustable security settings and device posture checks
+  - Flexible routing rules for company domains
 
-- All resources include a random 6-character suffix in their names
-- Prevents naming conflicts when deploying multiple instances
-- Enables easier cleanup and avoids resource name collisions
-- Each deployment has a unique identifier available in outputs
+- **Network Access Control**:
+  - Granular control over which virtual networks each team can access
+  - Support for environment-specific access patterns
+  - Integration with Cloudflare's Zero Trust policies
+  - Customizable security controls per team
 
 ## Usage
 
@@ -70,18 +67,37 @@ module "cloudflare_ztna" {
   cloudflare_account_id = var.cloudflare_account_id
   domain_name = "yourdomain.com"
   
-  # Define private network CIDR to be split
+  # Configure private network CIDR (optional, defaults to "10.100.0.0/20")
   private_network_cidr = "10.100.0.0/20"
   
-  # Only create engineering team with its WARP profile
-  engineering_team = {
-    email_domains = ["engineering.yourdomain.com"]
+  # Configure landing zones
+  landing_zones = {
+    development = {
+      domain_name = "dev.yourdomain.com"
+      environment = "development"
+    }
+    staging = {
+      domain_name = "staging.yourdomain.com"
+      environment = "staging"
+    }
+    production = {
+      domain_name = "prod.yourdomain.com"
+      environment = "production"
+    }
+    reserved = {
+      domain_name = "admin.yourdomain.com"
+      environment = "reserved"
+    }
   }
-}
-
-# The deployment will have a unique identifier
-output "deployment_id" {
-  value = module.cloudflare_ztna.zero_trust_warp_profiles.deployment_id
+  
+  # Configure teams
+  teams = {
+    engineering = {
+      name = "Engineering"
+      email_domains = ["engineering.yourdomain.com"]
+      landing_zone_access = ["development"]
+    }
+  }
 }
 ```
 
@@ -95,35 +111,68 @@ module "cloudflare_ztna" {
   cloudflare_account_id = var.cloudflare_account_id
   domain_name = "yourdomain.com"
   
-  # Define private network CIDR to be split
-  private_network_cidr = "172.16.0.0/20"  # Will be split into four /22 networks
+  # Configure private network CIDR (optional, defaults to "10.100.0.0/20")
+  private_network_cidr = "172.16.0.0/20"  # Custom CIDR for this deployment
   
-  # Configure multiple teams with different WARP profiles and network access
-  engineering_team = {
-    email_domains   = ["engineering.yourdomain.com"]
-    email_addresses = ["lead.engineer@yourdomain.com"]
+  # Configure landing zones
+  landing_zones = {
+    development = {
+      domain_name = "dev.yourdomain.com"
+      environment = "development"
+      description = "Development environment network"
+    }
+    staging = {
+      domain_name = "staging.yourdomain.com"
+      environment = "staging"
+      description = "Staging environment network"
+    }
+    production = {
+      domain_name = "prod.yourdomain.com"
+      environment = "production"
+      description = "Production environment network"
+    }
+    reserved = {
+      domain_name = "admin.yourdomain.com"
+      environment = "reserved"
+      description = "Administrative and security network"
+    }
   }
   
-  devops_team = {
-    email_addresses = ["devops@yourdomain.com", "sre@yourdomain.com"]
-  }
-  
-  security_team = {
-    email_domains = ["security.yourdomain.com"]
+  # Configure teams with different access patterns
+  teams = {
+    engineering = {
+      name = "Engineering"
+      email_domains   = ["engineering.yourdomain.com"]
+      email_addresses = ["lead.engineer@yourdomain.com"]
+      landing_zone_access = ["development"]
+      split_tunneling = {
+        include = ["*.yourdomain.com"]
+        exclude = ["*.github.com"]
+      }
+    }
+    
+    devops = {
+      name = "DevOps"
+      email_addresses = ["devops@yourdomain.com", "sre@yourdomain.com"]
+      landing_zone_access = ["development", "staging", "production"]
+      split_tunneling = {
+        include = ["*.yourdomain.com", "*.cloudflare.com"]
+        exclude = ["*.github.com"]
+      }
+    }
+    
+    security = {
+      name = "Security"
+      email_domains = ["security.yourdomain.com"]
+      landing_zone_access = ["reserved", "development", "staging", "production"]
+      split_tunneling = {
+        include = ["*"]
+        exclude = ["*.github.com", "*.google.com"]
+      }
+    }
   }
 }
 ```
-
-## CIDR Allocation and Team Access
-
-The module creates the following CIDR allocations and access patterns:
-
-| Environment | CIDR (from base /20) | Accessible By |
-|-------------|---------------------|---------------|
-| Development | First /22 subnet    | Engineering, DevOps |
-| Staging     | Second /22 subnet   | DevOps only |  
-| Production  | Third /22 subnet    | DevOps only |
-| Reserved    | Fourth /22 subnet   | Security only |
 
 ## Development
 

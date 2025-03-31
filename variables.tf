@@ -21,6 +21,12 @@ variable "cloudflare_zone_id" {
   default     = ""
 }
 
+variable "private_network_cidr" {
+  description = "The CIDR block to use for private networks"
+  type        = string
+  default     = "10.100.0.0/20"
+}
+
 variable "landingzones" {
   description = "List of landing zones with their domain names and environment names"
   type = list(object({

@@ -12,7 +12,7 @@ locals {
   team_network_access = {
     for team in var.teams : team.name => {
       networks = [
-        for lz in var.landingzones : local.private_network_cidr
+        for lz in var.landingzones : var.private_network_cidr
         if contains(coalesce(team.environments, ["development"]), lz.environment)
       ]
     }
@@ -64,7 +64,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_route" "landing_zones" {
   
   account_id = local.cloudflare_account_id
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.landing_zones[each.key].id
-  network    = local.private_network_cidr
+  network    = var.private_network_cidr
   virtual_network_id = cloudflare_zero_trust_tunnel_cloudflared_virtual_network.landing_zones[each.key].id
 }
 

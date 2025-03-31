@@ -27,4 +27,6 @@ module "ztna" {
 
   # Team configurations
   teams = var.teams
+
+  base_precedence = var.base_precedence
 }

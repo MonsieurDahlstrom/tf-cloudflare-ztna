@@ -56,4 +56,10 @@ variable "teams" {
       allowed_domains = ["example.com", "staging.example.com", "prod.example.com"]
     }
   ]
-} 
+}
+
+variable "base_precedence" {
+  description = "Base precedence for the access policies"
+  type        = number
+}
+

@@ -3,9 +3,9 @@ output "team_groups" {
   description = "Created team access groups"
   value = {
     for team in var.teams : team.name => {
-      id          = cloudflare_zero_trust_access_group.teams[team.name].id
-      name        = cloudflare_zero_trust_access_group.teams[team.name].name
-      description = team.description
+      id           = cloudflare_zero_trust_access_group.teams[team.name].id
+      name         = cloudflare_zero_trust_access_group.teams[team.name].name
+      description  = team.description
       environments = coalesce(team.environments, ["development"])
     }
   }
@@ -61,10 +61,10 @@ output "tunnel_routes" {
   description = "Created tunnel routes"
   value = {
     for lz in var.landingzones : lz.domain_name => {
-      id                = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].id
-      tunnel_id         = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].tunnel_id
+      id                 = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].id
+      tunnel_id          = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].tunnel_id
       virtual_network_id = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].virtual_network_id
-      network           = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].network
+      network            = cloudflare_zero_trust_tunnel_cloudflared_route.landing_zones[lz.domain_name].network
     }
   }
 }

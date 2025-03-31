@@ -17,6 +17,9 @@ locals {
       ]
     }
   }
+
+  # Create a suffix for resource names
+  name_suffix = var.suffix != "" ? "-${var.suffix}" : ""
 }
 
 # Create random string for uniqueness
@@ -35,7 +38,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_virtual_network" "landing_zon
   for_each = { for lz in var.landingzones : lz.domain_name => lz }
   
   account_id = local.cloudflare_account_id
-  name       = "${each.value.environment}-network"
+  name       = "${each.value.environment}-network${local.name_suffix}"
   comment    = "Virtual network for ${each.value.environment} environment"
 }
 
@@ -44,7 +47,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "landing_zones" {
   for_each = { for lz in var.landingzones : lz.domain_name => lz }
   
   account_id = local.cloudflare_account_id
-  name       = "${each.value.environment}-tunnel"
+  name       = "${each.value.environment}-tunnel${local.name_suffix}"
   tunnel_secret     = random_string.tunnel_secrets[each.key].result
 }
 
@@ -73,7 +76,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_route" "landing_zones" {
 resource "cloudflare_zero_trust_access_group" "teams" {
   for_each   = { for team in var.teams : team.name => team }
   account_id = local.cloudflare_account_id
-  name       = "${title(each.value.name)} Team - ${random_string.suffix.result}"
+  name       = "${title(each.value.name)} Team${local.name_suffix}"
 
   include = local.team_email_objects[each.key]
 }
@@ -85,7 +88,7 @@ resource "cloudflare_zero_trust_access_group" "teams" {
 resource "cloudflare_zero_trust_device_custom_profile" "teams" {
   for_each    = { for team in var.teams : team.name => team }
   account_id  = local.cloudflare_account_id
-  name        = "${title(each.value.name)} WARP Profile - ${random_string.suffix.result}"
+  name        = "${title(each.value.name)} WARP Profile${local.name_suffix}"
   description = each.value.description
   precedence  = 100 + index(var.teams, each.value)
 
@@ -114,7 +117,7 @@ resource "cloudflare_zero_trust_device_custom_profile" "teams" {
 resource "cloudflare_zero_trust_gateway_policy" "teams" {
   for_each    = { for team in var.teams : team.name => team }
   account_id  = local.cloudflare_account_id
-  name        = "${title(each.value.name)} Access Policy - ${random_string.suffix.result}"
+  name        = "${title(each.value.name)} Access Policy${local.name_suffix}"
   description = each.value.description
   precedence  = 100 + index(var.teams, each.value)
   action      = "allow"

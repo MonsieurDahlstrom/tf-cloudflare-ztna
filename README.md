@@ -1,19 +1,19 @@
 # Cloudflare Zero Trust WARP Profiles Module
 
-This Terraform module demonstrates how to implement user group-based WARP profiles using Cloudflare's Zero Trust products. The module creates different WARP profiles for different user groups, with customized split tunneling and security settings for each group, including network segmentation with CIDR blocks.
+This Terraform module implements user group-based WARP profiles using Cloudflare's Zero Trust products. The module creates different WARP profiles for different user groups, with customized split tunneling and security settings for each group, including network segmentation with CIDR blocks.
 
 ## Module Structure
 
-The module is structured using standard Terraform practices:
+The module is organized into several key components:
 
-- `providers.tf` - Contains provider configuration
-- `variables.tf` - Defines input variables
+- `providers.tf` - Cloudflare provider configuration
+- `variables.tf` - Input variable definitions
 - `main.tf` - Core resources and implementation
-- `outputs.tf` - Outputs that describe the WARP profiles
+- `outputs.tf` - Output definitions for WARP profiles
+- `locals.tf` - Local variable definitions
+- `versions.tf` - Provider and module version constraints
 
-## WARP Profile Implementation Approach
-
-This module implements a multi-layer approach to WARP profile configuration:
+## Features
 
 ### 1. User & Team Identity Management
 
@@ -57,36 +57,6 @@ This module implements a multi-layer approach to WARP profile configuration:
 - Prevents naming conflicts when deploying multiple instances
 - Enables easier cleanup and avoids resource name collisions
 - Each deployment has a unique identifier available in outputs
-
-## Implementation Features
-
-The module demonstrates:
-
-1. **Zero Trust User Groups with Variable-Driven Configuration**
-   - Creates logical groupings of users based on roles
-   - Configurable via variables for easy user management
-   - **Optional team creation** (only creates teams that are explicitly configured)
-   - Supports multiple identity types (email, domain, GitHub, etc.)
-
-2. **Network Segmentation with CIDR Subnets**
-   - Splits a single /20 CIDR into four /22 environment subnets
-   - Configurable base CIDR via variable input
-   - Clear network boundaries between environments
-   - Detailed output showing CIDR allocations
-
-3. **Team-Specific WARP Profiles with Environment Access**
-   - Creates targeted WARP configurations for different teams
-   - Customizes split tunneling based on team needs
-   - Controls which environments each team can access:
-     - Engineering: Development only
-     - DevOps: All environments (development, staging, production)
-     - Security: Reserved network plus all traffic
-
-4. **Unique Resource Naming**
-   - Uses the random provider to generate a unique suffix
-   - Appends the suffix to all resource names
-   - Makes resources easily identifiable by deployment
-   - Prevents conflicts when creating multiple deployments
 
 ## Usage
 
@@ -155,19 +125,48 @@ The module creates the following CIDR allocations and access patterns:
 | Production  | Third /22 subnet    | DevOps only |
 | Reserved    | Fourth /22 subnet   | Security only |
 
-## Key Benefits
+## Development
 
-1. **User-Centric Security** - Security follows the user, not the network
-2. **Group-Based Profile Assignment** - Automated WARP profile assignment based on group membership
-3. **Traffic Segmentation** - Different WARP profiles route different traffic through WARP
-4. **Environment Isolation** - Clear network boundaries between development, staging, and production
-5. **Team-Appropriate Access** - Each team only gets access to the environments they need
-6. **Easy Maintenance** - Variable-driven configuration for team membership and network allocation
-7. **Flexible Deployment** - Create only the teams and profiles you need
-8. **Resource Name Uniqueness** - Random suffix prevents naming conflicts between deployments
+### Prerequisites
 
-## Resources
+- Terraform >= 1.0.0
+- Cloudflare API Token with appropriate permissions
+- Cloudflare Zero Trust subscription
 
-- [Cloudflare Zero Trust Documentation](https://developers.cloudflare.com/cloudflare-one/)
-- [Cloudflare WARP Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-devices/warp/)
-- [Cloudflare Gateway Documentation](https://developers.cloudflare.com/cloudflare-one/policies/filtering/) 
+### Testing
+
+The module includes a comprehensive test suite:
+
+```bash
+# Initialize Terraform
+terraform init
+
+# Run tests
+terraform test
+```
+
+### Code Quality
+
+This module uses several tools to maintain code quality:
+
+- `tflint` for Terraform linting
+- `pre-commit` hooks for automated checks
+- GitHub Actions for CI/CD
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This Terraform module is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+
+You are free to share, adapt, and use the code for non-commercial purposes, with attribution.
+
+**Commercial use is prohibited** without a separate license. If you would like to use this module commercially (e.g., in client projects, paid SaaS, or commercial infrastructure), please contact the author to obtain a commercial license.
+
+License details: https://creativecommons.org/licenses/by-nc/4.0/legalcode 

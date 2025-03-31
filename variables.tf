@@ -1,3 +1,9 @@
+variable "suffix" {
+  description = "Optional suffix to append to all resource names for uniqueness"
+  type        = string
+  default     = ""
+}
+
 variable "cloudflare_api_token" {
   description = "Cloudflare API token with sufficient permissions to manage Zero Trust resources"
   type        = string

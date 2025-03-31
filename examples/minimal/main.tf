@@ -8,9 +8,14 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+resource "random_pet" "suffix" {
+}
+
 # Create the module instance
 module "ztna" {
   source = "../../"
+  # Use random pet to create unqiue test resources
+  suffix = random_pet.suffix.id
 
   # Required variables
   cloudflare_account_id = var.cloudflare_account_id

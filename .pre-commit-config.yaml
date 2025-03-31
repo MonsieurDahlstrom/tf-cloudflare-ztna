@@ -14,7 +14,7 @@ repos:
           (?x)^(
             .*examples/.*
           )$
-      - id: checkov
+      - id: terraform_checkov
         args:
           - --check CKV_CLOUDFLARE_*
           - --check CKV_*

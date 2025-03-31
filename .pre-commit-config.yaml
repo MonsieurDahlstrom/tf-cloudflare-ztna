@@ -26,13 +26,14 @@ repos:
           - --args=CKV_124
           - --args=--skip-check
           - --args=CKV_SECRET_6
+          - --args=--skip-path
+          - --args=terraform.tfvars.json
           - --args=--compact
           - --args=--quiet
           - --args=--directory
           - --args=.
         exclude: |
           (?x)^(
-            .*terraform\.tfvars\.json$
             .*examples/.*
           )$
       

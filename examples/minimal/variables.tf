@@ -57,9 +57,3 @@ variable "teams" {
     }
   ]
 }
-
-variable "base_precedence" {
-  description = "Base precedence for the access policies"
-  type        = number
-}
-

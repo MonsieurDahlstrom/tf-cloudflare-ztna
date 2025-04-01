@@ -1,3 +1,4 @@
+
 run "basic-setup" {
   module {
     source = "./examples/minimal"

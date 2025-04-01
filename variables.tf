@@ -87,9 +87,3 @@ variable "teams" {
     error_message = "Environment must be one of: development, staging, production"
   }
 }
-
-variable "base_precedence" {
-  description = "Base precedence value for access policies. Use 100 for production rules, higher values for integration testing."
-  type        = number
-  default     = 100
-}

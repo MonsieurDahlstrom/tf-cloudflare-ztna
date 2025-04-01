@@ -38,9 +38,9 @@ output "gateway_policies" {
 output "tunnels" {
   description = "Created Cloudflare tunnels"
   value = {
-    for lz in var.landingzones : lz.domain_name => {
-      i = cloudflare_zero_trust_tunnel_cloudflared.landing_zones[lz.domain_name].id
-      n = cloudflare_zero_trust_tunnel_cloudflared.landing_zones[lz.domain_name].name
+    for lz in var.landingzones : lz.environment => {
+      a = var.cloudflare_account_id
+      t = cloudflare_zero_trust_tunnel_cloudflared.landing_zones[lz.domain_name].id
       s = base64sha256(random_string.tunnel_secrets[lz.domain_name].result)
     }
   }

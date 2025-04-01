@@ -102,11 +102,11 @@ resource "cloudflare_zero_trust_device_profiles" "teams" {
 
   # WARP client settings
   enabled               = true
-  default = false
+  default               = false
   switch_locked         = true # Don't allow users to disable WARP
   captive_portal        = 5
   allow_mode_switch     = false # Don't allow switching between modes
-  auto_connect          = 0   # 5 minutes
+  auto_connect          = 0     # 5 minutes
   allow_updates         = true
   allowed_to_leave      = true
   disable_auto_fallback = false

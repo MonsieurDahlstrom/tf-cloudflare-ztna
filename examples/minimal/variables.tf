@@ -30,6 +30,7 @@ variable "teams" {
     name            = string
     description     = string
     email_addresses = list(string)
+    email_domains   = list(string)
     environments    = list(string)
     allowed_domains = list(string)
   }))
@@ -38,6 +39,7 @@ variable "teams" {
       name            = "engineering"
       description     = "Engineering team"
       email_addresses = ["engineering@example.com"]
+      email_domains   = ["example.com"]
       environments    = ["development", "staging"]
       allowed_domains = ["example.com", "staging.example.com"]
     },
@@ -45,6 +47,7 @@ variable "teams" {
       name            = "devops"
       description     = "DevOps team"
       email_addresses = ["devops@example.com"]
+      email_domains   = ["example.com"]
       environments    = ["development", "staging", "production"]
       allowed_domains = ["example.com", "staging.example.com", "prod.example.com"]
     },
@@ -52,6 +55,7 @@ variable "teams" {
       name            = "security"
       description     = "Security team"
       email_addresses = ["security@example.com"]
+      email_domains   = ["example.com"]
       environments    = ["development", "staging", "production"]
       allowed_domains = ["example.com", "staging.example.com", "prod.example.com"]
     }

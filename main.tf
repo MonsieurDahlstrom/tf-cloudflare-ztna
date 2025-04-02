@@ -1,11 +1,14 @@
 locals {
   cloudflare_account_id = var.cloudflare_account_id
 
-  # Transform email addresses to objects with 'email' key for each team
-  team_email_objects = {
-    for team in var.teams : team.name => [
-      for address in coalesce(team.email_addresses, []) : { email = { email = address } }
-    ]
+  # Transform all identity types into a single structure
+  team_identity_objects = {
+    for team in var.teams : team.name => concat(
+      # Email addresses
+      [for address in coalesce(team.email_addresses, []) : { email = [address] }],
+      # Email domains
+      [for domain in coalesce(team.email_domains, []) : { email_domain = [domain] }]
+    )
   }
 
   # Determine which networks each team should have access to based on their environments setting
@@ -81,9 +84,10 @@ resource "cloudflare_zero_trust_access_group" "teams" {
   name       = "${title(each.value.name)} Team${local.name_suffix}"
 
   dynamic "include" {
-    for_each = local.team_email_objects[each.key]
+    for_each = local.team_identity_objects[each.key]
     content {
-      email = [include.value.email.email]
+      email       = try(include.value.email, null)
+      email_domain = try(include.value.email_domain, null)
     }
   }
 }

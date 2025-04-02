@@ -48,6 +48,7 @@ resource "random_string" "tunnel_secrets" {
   for_each = { for lz in var.landingzones : lz.domain_name => lz }
   length   = 32
   special  = false
+  upper    = false
 }
 
 # Create cloudflared tunnels for each landing zone
@@ -56,7 +57,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "landing_zones" {
 
   account_id = local.cloudflare_account_id
   name       = "${each.value.environment}-tunnel${local.name_suffix}"
-  secret     = random_string.tunnel_secrets[each.key].result
+  secret     = base64sha256(random_string.tunnel_secrets[each.key].result)
 }
 
 # Create tunnel routes for each landing zone

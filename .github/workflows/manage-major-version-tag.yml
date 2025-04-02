@@ -1,6 +1,11 @@
 name: Manage major version tag
 
 on:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
   release:
     types: [published]
 
@@ -17,7 +22,7 @@ jobs:
       - name: Parse version from release tag
         id: parse_version
         run: |
-          RELEASE_TAG=${GITHUB_REF#refs/tags/}
+          RELEASE_TAG=${{ inputs.release_tag || github.ref_name }}
           MAJOR_VERSION=$(echo $RELEASE_TAG | cut -d'.' -f1)
           echo "major_version=$MAJOR_VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT

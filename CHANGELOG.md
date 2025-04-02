@@ -1,3 +1,10 @@
+# [1.0.0-beta.2](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2025-04-02)
+
+
+### Bug Fixes
+
+* base64sha256 encode tunnel secret in resource and output ([99a5353](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/commit/99a53539cc6cb2d465c2ac2ba586287043a65a4f))
+
 # 1.0.0-beta.1 (2025-04-01)
 
 

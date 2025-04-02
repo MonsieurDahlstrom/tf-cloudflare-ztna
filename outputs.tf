@@ -41,7 +41,7 @@ output "tunnels" {
     for lz in var.landingzones : lz.environment => {
       a = var.cloudflare_account_id
       t = cloudflare_zero_trust_tunnel_cloudflared.landing_zones[lz.domain_name].id
-      s = base64sha256(random_string.tunnel_secrets[lz.domain_name].result)
+      s = base64sha256(random_string.tunnel_secrets[lz.environment].result)
     }
   }
 }

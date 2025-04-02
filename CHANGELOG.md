@@ -1,3 +1,10 @@
+## [1.0.2-beta.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.0.1...v1.0.2-beta.1) (2025-04-02)
+
+
+### Bug Fixes
+
+* fixed tunnel secret lookup ([0df48ac](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/commit/0df48ac4401886cd56b5a98a08b01bf33a57dd28))
+
 ## [1.0.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.0.0...v1.0.1) (2025-04-02)
 
 

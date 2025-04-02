@@ -3,11 +3,11 @@ name: Terraform Security Scan
 on:
   workflow_call:
     secrets:
-      AZURE_CLIENT_ID:
+      CLOUDFLARE_API_TOKEN:
         required: true
-      AZURE_SUBSCRIPTION_ID:
+      CLOUDFLARE_ACCOUNT_ID:
         required: true
-      AZURE_TENANT_ID:
+      CLOUDFLARE_ZONE_ID:
         required: true
 
 jobs:

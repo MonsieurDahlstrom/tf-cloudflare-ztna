@@ -1,3 +1,10 @@
+# [1.1.0-beta.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.0.2-beta.1...v1.1.0-beta.1) (2025-04-02)
+
+
+### Features
+
+* added email_domains to teams resorurces ([23dd04f](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/commit/23dd04f2a42bd56ebe628d14ff6b3eb3b28ab83d))
+
 ## [1.0.2-beta.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.0.1...v1.0.2-beta.1) (2025-04-02)
 
 

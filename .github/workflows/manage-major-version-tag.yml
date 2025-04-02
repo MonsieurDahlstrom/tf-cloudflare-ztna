@@ -6,12 +6,6 @@ on:
       release_tag:
         required: true
         type: string
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: 'Release tag to manage (e.g., v1.0.0)'
-        required: true
-        type: string
   release:
     types: [published]
 

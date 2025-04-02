@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.1.0...v1.1.1) (2025-04-02)
+
+
+### Bug Fixes
+
+* email_addresses, email_domains cant be set indepdently on a teams ([8a1a645](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/commit/8a1a645005cfc8d914ce8e4e184772571ed3bfa9))
+
 ## [1.1.1-beta.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.1.0...v1.1.1-beta.1) (2025-04-02)
 
 

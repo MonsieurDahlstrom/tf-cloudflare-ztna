@@ -84,10 +84,10 @@ resource "cloudflare_zero_trust_access_group" "teams" {
   name       = "${title(each.value.name)} Team${local.name_suffix}"
 
   dynamic "include" {
-    for_each = local.team_identity_objects[each.key]
+    for_each = [1] # Single iteration to create one include block
     content {
-      email       = try(include.value.email, null)
-      email_domain = try(include.value.email_domain, null)
+      email        = length(coalesce(each.value.email_addresses, [])) > 0 ? each.value.email_addresses : null
+      email_domain = length(coalesce(each.value.email_domains, [])) > 0 ? each.value.email_domains : null
     }
   }
 }

@@ -1,3 +1,10 @@
+## [1.1.2-beta.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.1.1...v1.1.2-beta.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* added warning that github identities are not implemeted yet ([7bcc22c](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/commit/7bcc22c31003396b1e9a3a954e6b05ea7c521669))
+
 <<<<<<< HEAD
 ## [1.1.1-beta.2](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.1.1-beta.1...v1.1.1-beta.2) (2025-04-07)
 =======

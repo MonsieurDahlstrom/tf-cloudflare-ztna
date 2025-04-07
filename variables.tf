@@ -86,4 +86,14 @@ variable "teams" {
     ])
     error_message = "Environment must be one of: development, staging, production"
   }
+  
+  validation {
+    condition = alltrue([
+      for team in var.teams : length(coalesce(team.github_identities, [])) == 0 || (
+        length(coalesce(team.github_identities, [])) > 0 && 
+        can(regex("WARNING", "WARNING"))
+      )
+    ])
+    error_message = "WARNING: The github_identities property is currently not implemented and will be ignored. This feature is planned for a future version of the module."
+  }
 }

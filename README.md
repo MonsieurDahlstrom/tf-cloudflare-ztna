@@ -1,6 +1,8 @@
-# Cloudflare Zero Trust WARP Profiles Module
+# Cloudflare Zero Trust Network Access Module
 
-This Terraform module implements user group-based WARP profiles using Cloudflare's Zero Trust products. The module creates different WARP profiles for different user groups, with customized split tunneling and security settings for each group, including network segmentation with CIDR blocks.
+This Terraform module implements Cloudflare Zero Trust Network Access (ZTNA) with team-based access controls and environment-specific landing zones.
+
+The module creates virtual networks, cloudflared tunnels, and WARP profiles for different teams with customized access rules.
 
 ## Module Structure
 
@@ -9,170 +11,131 @@ The module is organized into several key components:
 - `providers.tf` - Cloudflare provider configuration
 - `variables.tf` - Input variable definitions
 - `main.tf` - Core resources and implementation
-- `outputs.tf` - Output definitions for WARP profiles
-- `locals.tf` - Local variable definitions
+- `outputs.tf` - Output definitions
 - `versions.tf` - Provider and module version constraints
 
 ## Features
 
-### 1. User & Team Identity Management
+### 1. Landing Zone Management
 
-- Creates distinct user groups based on organizational roles
-- Categorizes users (Engineering, DevOps, Security) for access decisions
-- Establishes the foundation for WARP profile assignment
-- **Variable-driven group membership** for easy configuration
-- **Fully optional teams** that are only created when configured
+- Creates environment-specific landing zones (development, staging, production)
+- Each landing zone has its own:
+  - Virtual network
+  - Cloudflared tunnel
+  - Tunnel routes
+- Configurable domain names for each environment
+- Automatic secret generation for tunnels
 
-### 2. Network Segmentation with Virtual Networks
+### 2. Team-Based Access Control
 
-- Creates four separate virtual networks, each with the same IP range:
-  - **Development Environment**: Dedicated virtual network for development workloads
-  - **Staging Environment**: Dedicated virtual network for staging workloads
-  - **Production Environment**: Dedicated virtual network for production workloads
-  - **Reserved**: Dedicated virtual network for administrative/security purposes
-- Each virtual network has its own network security and access controls
-- Teams have varying levels of access to different virtual networks based on their roles
-- Provides complete network isolation between environments
-- Enables granular access control through WARP profiles
+- Creates Zero Trust access groups for different teams
+- Supports multiple identity types:
+  - Email addresses
+  - Email domains
+  - GitHub identities (planned for future version)
+- Teams can be assigned to specific environments
+- Granular access control through gateway policies
 
-### 3. Team-Specific WARP Profiles
+### 3. WARP Profile Configuration
 
-- **Flexible Team Configuration**:
-  - Define teams through a variable-driven approach
-  - Support for multiple identity types (email domains, email addresses)
-  - Optional team creation based on configuration
-  - Each team can have its own WARP profile settings
-
-- **WARP Profile Customization**:
-  - Configurable split tunneling rules per team
-  - Customizable network access controls
-  - Adjustable security settings and device posture checks
-  - Flexible routing rules for company domains
-
-- **Network Access Control**:
-  - Granular control over which virtual networks each team can access
-  - Support for environment-specific access patterns
-  - Integration with Cloudflare's Zero Trust policies
-  - Customizable security controls per team
+- Team-specific WARP profiles with:
+  - Automatic connection settings
+  - Locked switch mode
+  - Configurable captive portal behavior
+  - Automatic updates enabled
+  - WireGuard tunnel protocol
+- Precedence-based profile ordering
+- Environment-specific network access
 
 ## Usage
 
-### Basic Usage (minimal configuration)
+### Basic Usage
 
 ```hcl
 module "cloudflare_ztna" {
-  source = "./tf-cf-ztna"
+  source = "./tf-cloudflare-ztna"
   
   cloudflare_api_token = var.cloudflare_api_token
   cloudflare_account_id = var.cloudflare_account_id
-  domain_name = "yourdomain.com"
+  cloudflare_zone_id    = var.cloudflare_zone_id
+  
+  # Optional suffix for resource names
+  suffix = "prod"
   
   # Configure private network CIDR (must be a /22 CIDR in a private range)
-  private_network_cidr = "10.100.0.0/22"  # Default value
+  private_network_cidr = "10.0.0.0/22"
   
   # Configure landing zones
-  landing_zones = {
-    development = {
-      domain_name = "dev.yourdomain.com"
+  landingzones = [
+    {
+      domain_name = "dev.example.com"
       environment = "development"
-    }
-    staging = {
-      domain_name = "staging.yourdomain.com"
+    },
+    {
+      domain_name = "staging.example.com"
       environment = "staging"
-    }
-    production = {
-      domain_name = "prod.yourdomain.com"
+    },
+    {
+      domain_name = "prod.example.com"
       environment = "production"
     }
-    reserved = {
-      domain_name = "admin.yourdomain.com"
-      environment = "reserved"
-    }
-  }
+  ]
   
   # Configure teams
-  teams = {
-    engineering = {
-      name = "Engineering"
-      email_domains = ["engineering.yourdomain.com"]
-      landing_zone_access = ["development"]
+  teams = [
+    {
+      name            = "engineering"
+      description     = "Engineering team with development access"
+      email_domains   = ["engineering.example.com"]
+      environments    = ["development"]
+      allowed_domains = ["*.example.com"]
+    },
+    {
+      name            = "devops"
+      description     = "DevOps team with full access"
+      email_addresses = ["devops@example.com"]
+      environments    = ["development", "staging", "production"]
+      allowed_domains = ["*.example.com", "*.cloudflare.com"]
     }
-  }
+  ]
 }
 ```
 
-### Advanced Usage (multiple teams with different network access)
+### Advanced Usage (GitHub Identities - Coming Soon)
+
+GitHub identity integration is planned for a future version of this module. This will allow teams to be identified by their GitHub organization memberships.
 
 ```hcl
-module "cloudflare_ztna" {
-  source = "./tf-cf-ztna"
-  
-  cloudflare_api_token = var.cloudflare_api_token
-  cloudflare_account_id = var.cloudflare_account_id
-  domain_name = "yourdomain.com"
-  
-  # Configure private network CIDR (must be a /22 CIDR in a private range)
-  private_network_cidr = "172.16.0.0/22"  # Custom CIDR in private range
-  
-  # Configure landing zones
-  landing_zones = {
-    development = {
-      domain_name = "dev.yourdomain.com"
-      environment = "development"
-      description = "Development environment network"
-    }
-    staging = {
-      domain_name = "staging.yourdomain.com"
-      environment = "staging"
-      description = "Staging environment network"
-    }
-    production = {
-      domain_name = "prod.yourdomain.com"
-      environment = "production"
-      description = "Production environment network"
-    }
-    reserved = {
-      domain_name = "admin.yourdomain.com"
-      environment = "reserved"
-      description = "Administrative and security network"
-    }
+# Example of planned GitHub identity support
+teams = [
+  {
+    name        = "engineering"
+    description = "Engineering team with GitHub integration"
+    email_domains = ["engineering.example.com"]
+    # GitHub identities support coming in a future version
+    # github_identities = [
+    #   {
+    #     name                 = "Engineering Team"
+    #     identity_provider_id = "github-oauth"
+    #   }
+    # ]
+    environments    = ["development", "staging"]
+    allowed_domains = ["*.example.com", "*.github.com"]
   }
-  
-  # Configure teams with different access patterns
-  teams = {
-    engineering = {
-      name = "Engineering"
-      email_domains   = ["engineering.yourdomain.com"]
-      email_addresses = ["lead.engineer@yourdomain.com"]
-      landing_zone_access = ["development"]
-      split_tunneling = {
-        include = ["*.yourdomain.com"]
-        exclude = ["*.github.com"]
-      }
-    }
-    
-    devops = {
-      name = "DevOps"
-      email_addresses = ["devops@yourdomain.com", "sre@yourdomain.com"]
-      landing_zone_access = ["development", "staging", "production"]
-      split_tunneling = {
-        include = ["*.yourdomain.com", "*.cloudflare.com"]
-        exclude = ["*.github.com"]
-      }
-    }
-    
-    security = {
-      name = "Security"
-      email_domains = ["security.yourdomain.com"]
-      landing_zone_access = ["reserved", "development", "staging", "production"]
-      split_tunneling = {
-        include = ["*"]
-        exclude = ["*.github.com", "*.google.com"]
-      }
-    }
-  }
-}
+]
 ```
+
+## Input Variables
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|----------|
+| suffix | Optional suffix to append to all resource names | string | "" | no |
+| cloudflare_api_token | Cloudflare API token | string | n/a | yes |
+| cloudflare_account_id | Cloudflare account ID | string | n/a | yes |
+| cloudflare_zone_id | Cloudflare zone ID | string | "" | no |
+| private_network_cidr | CIDR block for private networks (/22) | string | "10.0.0.0/22" | no |
+| landingzones | List of landing zone configurations | list(object) | [] | no |
+| teams | List of team configurations | list(object) | [] | no |
 
 ## Development
 
@@ -198,7 +161,7 @@ terraform test
 
 This module uses several tools to maintain code quality:
 
-- `tflint` for Terraform linting
+- `checkov` for security and compliance scanning
 - `pre-commit` hooks for automated checks
 - GitHub Actions for CI/CD
 

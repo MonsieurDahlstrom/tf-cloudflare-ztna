@@ -32,7 +32,7 @@ The module is organized into several key components:
 - Supports multiple identity types:
   - Email addresses
   - Email domains
-  - GitHub identities (optional)
+  - GitHub identities (planned for future version)
 - Teams can be assigned to specific environments
 - Granular access control through gateway policies
 
@@ -99,6 +99,30 @@ module "cloudflare_ztna" {
     }
   ]
 }
+```
+
+### Advanced Usage (GitHub Identities - Coming Soon)
+
+GitHub identity integration is planned for a future version of this module. This will allow teams to be identified by their GitHub organization memberships.
+
+```hcl
+# Example of planned GitHub identity support
+teams = [
+  {
+    name        = "engineering"
+    description = "Engineering team with GitHub integration"
+    email_domains = ["engineering.example.com"]
+    # GitHub identities support coming in a future version
+    # github_identities = [
+    #   {
+    #     name                 = "Engineering Team"
+    #     identity_provider_id = "github-oauth"
+    #   }
+    # ]
+    environments    = ["development", "staging"]
+    allowed_domains = ["*.example.com", "*.github.com"]
+  }
+]
 ```
 
 ## Input Variables

@@ -1,3 +1,15 @@
+# [2.0.0-beta.1](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.1.2...v2.0.0-beta.1) (2025-04-09)
+
+
+### Features
+
+* Access user groups removed ([458998e](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/commit/458998e96337b2822e0e3fa8b47dabff2fbd7d1c))
+
+
+### BREAKING CHANGES
+
+* Access configuration has been removed and team variable drives the gateway rules directly to give access to virtual networks
+
 ## [1.1.2](https://github.com/MonsieurDahlstrom/tf-cloudflare-ztna/compare/v1.1.1...v1.1.2) (2025-04-07)
 
 

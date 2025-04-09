@@ -68,11 +68,7 @@ variable "teams" {
     name            = string
     description     = string
     email_addresses = optional(list(string), [])
-    email_domains   = optional(list(string), [])
-    github_identities = optional(list(object({
-      name                 = string
-      identity_provider_id = string
-    })), [])
+    user_groups     = optional(list(string), [])
     environments    = optional(list(string), ["development"])
     allowed_domains = optional(list(string), [])
   }))
@@ -86,14 +82,19 @@ variable "teams" {
     ])
     error_message = "Environment must be one of: development, staging, production"
   }
-  
+
   validation {
     condition = alltrue([
-      for team in var.teams : length(coalesce(team.github_identities, [])) == 0 || (
-        length(coalesce(team.github_identities, [])) > 0 && 
-        can(regex("WARNING", "WARNING"))
-      )
+      for team in var.teams : alltrue([
+        for group in coalesce(team.user_groups, []) : can(regex("^[a-zA-Z0-9_-]+$", group))
+      ])
     ])
-    error_message = "WARNING: The github_identities property is currently not implemented and will be ignored. This feature is planned for a future version of the module."
+    error_message = "User group names must contain only alphanumeric characters, underscores, and hyphens"
   }
+}
+
+variable "base_precedence" {
+  description = "The base precedence for the team access policies"
+  type        = number
+  default     = 100
 }

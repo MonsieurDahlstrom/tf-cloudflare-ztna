@@ -27,4 +27,7 @@ module "ztna" {
 
   # Team configurations
   teams = var.teams
+
+  # Base precedence for the team access policies
+  base_precedence = var.base_precedence
 }

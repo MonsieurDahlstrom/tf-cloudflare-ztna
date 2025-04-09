@@ -8,11 +8,12 @@ The module creates virtual networks, cloudflared tunnels, and WARP profiles for 
 
 The module is organized into several key components:
 
-- `providers.tf` - Cloudflare provider configuration
-- `variables.tf` - Input variable definitions
 - `main.tf` - Core resources and implementation
+- `variables.tf` - Input variable definitions with validation rules
 - `outputs.tf` - Output definitions
 - `versions.tf` - Provider and module version constraints
+- `tests/` - Test suite for the module
+- `examples/` - Example configurations
 
 ## Features
 
@@ -21,8 +22,8 @@ The module is organized into several key components:
 - Creates environment-specific landing zones (development, staging, production)
 - Each landing zone has its own:
   - Virtual network
-  - Cloudflared tunnel
-  - Tunnel routes
+  - Cloudflared tunnel with secure random secrets
+  - Tunnel routes with private network CIDR
 - Configurable domain names for each environment
 - Automatic secret generation for tunnels
 
@@ -31,10 +32,10 @@ The module is organized into several key components:
 - Creates Zero Trust access groups for different teams
 - Supports multiple identity types:
   - Email addresses
-  - Email domains
-  - GitHub identities (planned for future version)
+  - User groups (with validation for alphanumeric characters)
 - Teams can be assigned to specific environments
 - Granular access control through gateway policies
+- Default deny policy for unmatched traffic
 
 ### 3. WARP Profile Configuration
 
@@ -43,7 +44,7 @@ The module is organized into several key components:
   - Locked switch mode
   - Configurable captive portal behavior
   - Automatic updates enabled
-  - WireGuard tunnel protocol
+  - Masque tunnel protocol
 - Precedence-based profile ordering
 - Environment-specific network access
 
@@ -86,43 +87,23 @@ module "cloudflare_ztna" {
     {
       name            = "engineering"
       description     = "Engineering team with development access"
-      email_domains   = ["engineering.example.com"]
+      user_groups     = ["engineering-team"]
       environments    = ["development"]
-      allowed_domains = ["*.example.com"]
+      allowed_domains = ["*.example.com"]  # Note: Currently unused, intended for future L7 rules
     },
     {
       name            = "devops"
       description     = "DevOps team with full access"
       email_addresses = ["devops@example.com"]
+      user_groups     = ["devops-team", "admin-team"]
       environments    = ["development", "staging", "production"]
-      allowed_domains = ["*.example.com", "*.cloudflare.com"]
+      allowed_domains = ["*.example.com", "*.cloudflare.com"]  # Note: Currently unused, intended for future L7 rules
     }
   ]
+
+  # Optional base precedence for policies
+  base_precedence = 100
 }
-```
-
-### Advanced Usage (GitHub Identities - Coming Soon)
-
-GitHub identity integration is planned for a future version of this module. This will allow teams to be identified by their GitHub organization memberships.
-
-```hcl
-# Example of planned GitHub identity support
-teams = [
-  {
-    name        = "engineering"
-    description = "Engineering team with GitHub integration"
-    email_domains = ["engineering.example.com"]
-    # GitHub identities support coming in a future version
-    # github_identities = [
-    #   {
-    #     name                 = "Engineering Team"
-    #     identity_provider_id = "github-oauth"
-    #   }
-    # ]
-    environments    = ["development", "staging"]
-    allowed_domains = ["*.example.com", "*.github.com"]
-  }
-]
 ```
 
 ## Input Variables
@@ -136,6 +117,20 @@ teams = [
 | private_network_cidr | CIDR block for private networks (/22) | string | "10.0.0.0/22" | no |
 | landingzones | List of landing zone configurations | list(object) | [] | no |
 | teams | List of team configurations | list(object) | [] | no |
+| base_precedence | Base precedence for team access policies | number | 100 | no |
+
+### Variable Validation
+
+The module includes several validation rules:
+
+- `private_network_cidr` must be a /22 CIDR in a private range (10.0.0.0/8, 172.16.0.0/12, or 192.168.0.0/16)
+- `landingzones.environment` must be one of: development, staging, production
+- `teams.environments` must be one of: development, staging, production
+- `teams.user_groups` must contain only alphanumeric characters, underscores, and hyphens
+
+### Note on Future Features
+
+The `allowed_domains` field in team configurations is currently not implemented but was designed for future L7 (Layer 7) access control rules. This will allow for more granular control over which domains teams can access within their assigned environments.
 
 ## Development
 

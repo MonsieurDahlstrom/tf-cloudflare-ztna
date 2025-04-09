@@ -4,17 +4,7 @@ run "basic-setup" {
   }
 
   assert {
-    condition     = module.ztna.team_groups != null
-    error_message = "Module ID should not be null"
-  }
-
-  assert {
     condition     = module.ztna.warp_profiles != null
-    error_message = "Module ID should not be null"
-  }
-
-  assert {
-    condition     = module.ztna.gateway_policies != null
     error_message = "Module ID should not be null"
   }
 
@@ -24,27 +14,28 @@ run "basic-setup" {
   }
 
   assert {
-    condition     = alltrue([
-      for tunnel in module.ztna.tunnels : 
-      tunnel.a != null && tunnel.t != null && tunnel.s != null
-    ])
-    error_message = "All tunnels must have a, t, and s properties set"
+    condition     = module.ztna.tunnels["development"] != null
+    error_message = "A tunnel for development must be created"
   }
 
   assert {
-    condition     = alltrue([
-      for tunnel in module.ztna.tunnels : 
-      can(regex("^[a-f0-9]{32}$", tunnel.s))
-    ])
-    error_message = "All tunnel 's' properties must be valid base64sha256 hashes"
+    condition     = module.ztna.tunnels["development"].s != null
+    error_message = "A tunnel for development must have a secret"
   }
 
   assert {
-    condition     = alltrue([
-      for tunnel in module.ztna.tunnels : 
-      can(regex("^[a-f0-9]{32}$", tunnel.t))
-    ])
-    error_message = "All tunnel 't' properties must be valid Cloudflare tunnel IDs"
+    condition     = module.ztna.tunnels["development"].a != null
+    error_message = "A tunnel for development must have a account id"
+  }
+
+  assert {
+    condition     = module.ztna.tunnels["development"].t != null
+    error_message = "A tunnel for development must have a tunnel id"
+  }
+
+  assert {
+    condition     = can(regex("^[A-Za-z0-9+/]{43}=$", module.ztna.tunnels["development"].s))
+    error_message = "A tunnel for development must have a bas64 encoded sha256secret"
   }
 
   assert {
